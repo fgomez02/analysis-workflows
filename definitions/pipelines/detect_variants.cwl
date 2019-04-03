@@ -111,33 +111,17 @@ outputs:
         type: File
         outputSource: mutect/unfiltered_vcf
         secondaryFiles: [.tbi]
-    mutect_filtered_vcf:
-        type: File
-        outputSource: mutect/filtered_vcf
-        secondaryFiles: [.tbi]
     strelka_unfiltered_vcf:
         type: File
         outputSource: strelka/unfiltered_vcf
-        secondaryFiles: [.tbi]
-    strelka_filtered_vcf:
-        type: File
-        outputSource: strelka/filtered_vcf
         secondaryFiles: [.tbi]
     varscan_unfiltered_vcf:
         type: File
         outputSource: varscan/unfiltered_vcf
         secondaryFiles: [.tbi]
-    varscan_filtered_vcf:
-        type: File
-        outputSource: varscan/filtered_vcf
-        secondaryFiles: [.tbi]
     pindel_unfiltered_vcf:
         type: File
         outputSource: pindel/unfiltered_vcf
-        secondaryFiles: [.tbi]
-    pindel_filtered_vcf:
-        type: File
-        outputSource: pindel/filtered_vcf
         secondaryFiles: [.tbi]
     docm_filtered_vcf:
         type: File
@@ -146,10 +130,6 @@ outputs:
     final_vcf:
         type: File
         outputSource: index/indexed_vcf
-        secondaryFiles: [.tbi]
-    final_filtered_vcf:
-        type: File
-        outputSource: annotated_filter_index/indexed_vcf
         secondaryFiles: [.tbi]
     final_tsv:
         type: File
@@ -185,7 +165,7 @@ steps:
             artifact_detection_mode: mutect_artifact_detection_mode
             panel_of_normals_vcf: panel_of_normals_vcf
         out:
-            [unfiltered_vcf, filtered_vcf]
+            [unfiltered_vcf]
     strelka:
         run: ../subworkflows/strelka_and_post_processing.cwl
         in:
@@ -196,7 +176,7 @@ steps:
             exome_mode: strelka_exome_mode
             cpu_reserved: strelka_cpu_reserved
         out:
-            [unfiltered_vcf, filtered_vcf]
+            [unfiltered_vcf]
     varscan:
         run: ../subworkflows/varscan_pre_and_post_processing.cwl
         in:
@@ -210,7 +190,7 @@ steps:
             p_value: varscan_p_value
             max_normal_freq: varscan_max_normal_freq
         out:
-            [unfiltered_vcf, filtered_vcf]
+            [unfiltered_vcf]
     pindel:
         run: ../subworkflows/pindel.cwl
         in:
@@ -220,7 +200,7 @@ steps:
             interval_list: interval_list
             insert_size: pindel_insert_size
         out:
-            [unfiltered_vcf, filtered_vcf]
+            [unfiltered_vcf]
     docm:
         run: ../subworkflows/docm_cle.cwl
         in:
@@ -236,10 +216,10 @@ steps:
         run: ../tools/combine_variants.cwl
         in:
             reference: reference
-            mutect_vcf: mutect/filtered_vcf
-            strelka_vcf: strelka/filtered_vcf
-            varscan_vcf: varscan/filtered_vcf
-            pindel_vcf: pindel/filtered_vcf
+            mutect_vcf: mutect/unfiltered_vcf
+            strelka_vcf: strelka/unfiltered_vcf
+            varscan_vcf: varscan/unfiltered_vcf
+            pindel_vcf: pindel/unfiltered_vcf
         out:
             [combined_vcf]
     decompose:
@@ -329,25 +309,26 @@ steps:
             vcf: add_normal_bam_readcount_to_vcf/annotated_bam_readcount_vcf
         out:
             [indexed_vcf]
-    filter_vcf:
-        run: ../subworkflows/filter_vcf.cwl
-        in: 
-            vcf: index/indexed_vcf
-            filter_gnomADe_maximum_population_allele_frequency: filter_gnomADe_maximum_population_allele_frequency
-            filter_mapq0_threshold: filter_mapq0_threshold
-            filter_somatic_llr_threshold: filter_somatic_llr_threshold
-            filter_minimum_depth: filter_minimum_depth
-            sample_names:
-                default: 'NORMAL,TUMOR'
-            tumor_bam: tumor_bam
-            do_cle_vcf_filter: cle_vcf_filter
-            reference: reference
-        out: 
-            [filtered_vcf]
+    #filter_vcf:
+        #run: ../subworkflows/filter_vcf.cwl
+        #in: 
+            #vcf: index/indexed_vcf
+            #filter_gnomADe_maximum_population_allele_frequency: filter_gnomADe_maximum_population_allele_frequency
+            #filter_mapq0_threshold: filter_mapq0_threshold
+            #filter_somatic_llr_threshold: filter_somatic_llr_threshold
+            #filter_minimum_depth: filter_minimum_depth
+            #sample_names:
+                #default: 'NORMAL,TUMOR'
+            #tumor_bam: tumor_bam
+            #do_cle_vcf_filter: cle_vcf_filter
+            #reference: reference
+        #out: 
+            #[filtered_vcf]
     annotated_filter_bgzip:
         run: ../tools/bgzip.cwl
         in:
-            file: filter_vcf/filtered_vcf
+            file:index/indexed_vcf
+            #file: filter_vcf/filtered_vcf
         out:
             [bgzipped_file]
     annotated_filter_index:
