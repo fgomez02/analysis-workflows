@@ -3,7 +3,7 @@
 cwlVersion: v1.0
 class: CommandLineTool
 label: "SelectVariants (GATK 3.6)"
-baseCommand: ["/usr/bin/java", "-Xmx4g", "-jar", "/opt/GenomeAnalysisTK.jar", "-T", "VariantsToTable"]
+baseCommand: ["/usr/bin/java", "-Xmx4g", "-jar", "/opt/GenomeAnalysisTK.jar", "-T", "VariantsToTable", "--showFiltered"]
 requirements:
     - class: ResourceRequirement
       ramMin: 6000
@@ -11,7 +11,7 @@ requirements:
     - class: DockerRequirement
       dockerPull: "mgibio/gatk-cwl:3.6.0"
 arguments:
-    ["-o", { valueFrom: $(runtime.outdir)/variants.tsv }]
+    ["--allowMissingData","-o", { valueFrom: $(runtime.outdir)/variants.tsv }]
 inputs:
     reference:
         type: string
